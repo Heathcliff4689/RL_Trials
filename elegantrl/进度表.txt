@@ -24,3 +24,11 @@ P_tol, P_max单位改为mmWatts # 奖励波动过大
 归一化(max设置待确认)最终奖励[-1, 1] * 5，加clip[-5, 5]
 sigma = 0.1
 use_number = 16
+
+# 以上代码已保存副本v0
+
+2021年5月17日 15:58:00
+修改action_0: N_bs bf_book中选一个bf_vector, 如何去重->+1 # 效果不好
+
+todo
+相位角theta改由单位圆上的两个浮点数确定

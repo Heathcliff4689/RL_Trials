@@ -32,7 +32,7 @@ def moving_average(interval, window_size):
 
 
 if __name__ == "__main__":
-    path = "../AgentPPO/20210516_MIMONOMAEnv-v0_0"
+    path = "../AgentPPO/20210517_MIMONOMAEnv-v1_0"
     step = 2 ** 10
     window = 20
 
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     episode_return = np.asarray(episode_return)
     episode_return = moving_average(episode_return, window)
 
+    plt.figure(1)
     plt.subplot(2, 1, 1)
     plt.hist(act_list[:, 0], bins=20, facecolor="royalblue", edgecolor="red")
     # 显示横轴标签
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     plt.show()
     # plt.savefig(path + "/action_dis.jpg")
 
-
+    plt.figure(2)
     plt.plot(episode_return, color="royalblue")
     plt.ylabel("episode_reward")
     plt.xlabel("episodes")

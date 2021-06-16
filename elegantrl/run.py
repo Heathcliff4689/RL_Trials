@@ -179,9 +179,9 @@ def demo2_continuous_action_space_on_policy():
     "TotalStep: 8e5, TargetReward: 300, UsedTime: 1800s"
 
     '''train and evaluate'''
-    train_and_evaluate(args)
-    # args.rollout_num = 4
-    # train_and_evaluate_mp(args)
+    # train_and_evaluate(args)
+    args.rollout_num = 4
+    train_and_evaluate_mp(args)
 
 
 def demo3_custom_env_fin_rl():
@@ -658,7 +658,7 @@ class Evaluator:
             self.r_max = r_avg  # update max reward (episode return)
 
             '''save actor.pth'''
-            act_save_path = f'{self.cwd}/actor.pth'
+            act_save_path = f'{self.cwd}/actor_{self.env.state_dim}_{self.env.action_dim}.pth'
             torch.save(act.state_dict(), act_save_path)
             print(f"{self.agent_id:<2}  {self.total_step:8.2e}  {self.r_max:8.2f} |")
 

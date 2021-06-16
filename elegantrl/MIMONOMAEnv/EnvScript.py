@@ -15,7 +15,7 @@ class MIMONOMAEnv:
                  random_seed=args_channel.seed,
                  P_min=args_channel.P_min, P_max=args_channel.P_max,
                  abf_discount=args_channel.abf_discount):
-        self.env_name = 'MIMONOMAEnv-v0'
+        self.env_name = 'MIMONOMAEnv-v1'
         self.if_discrete = False
         self.target_reward = None
         self.action_max = None
@@ -27,6 +27,7 @@ class MIMONOMAEnv:
         self.user_number = None
         self.N_bs = N_bs
         self.action_change = 0.3
+        self.bf_book = np.asarray([2 * np.pi / self.N_bs * i for i in range(self.N_bs)])
         self.abf_discount = abf_discount[self.desired_user_number]
 
         self.state_dim = (6, self.desired_user_number, self.N_bs)
@@ -41,12 +42,13 @@ class MIMONOMAEnv:
 
         self.P_min = P_min
         self.P_max = P_max
-        # self.order = 0
+        self.order = 0
 
     def _updateGroups(self):
-        self.user_number = int(np.random.random() * self.desired_user_number)
-        if self.user_number < self.groups_number:
-            self.user_number = self.groups_number
+        # self.user_number = int(np.random.random() * self.desired_user_number)
+        # if self.user_number < self.groups_number:
+        #     self.user_number = self.groups_number
+        self.user_number = self.desired_user_number
         self.groups = userGrouping(groups=self.groups_number, user_numbers=self.user_number)
 
     def reset(self) -> np.ndarray:
@@ -79,15 +81,15 @@ class MIMONOMAEnv:
         state = np.vstack((next_state_part1, next_state_part2))
         curr_group_index = self.group_index
 
-        # np.clip(action[0], 0, 2 * np.pi)
-        action_0 = (action[0] + 1) / 2 * 2 * np.pi
-        action_0 = self.actionNormal(action_0)
+        action_index = int(np.clip((action[0] + 1) / 2 * self.N_bs / 2, 0, 64))
+        action_0 = self.bf_book[action_index]
+        action_0 = self.actionNormal(action_0, action_index)
         action_1 = (action[1] + 1) / 2 * self.P_max
 
         self.theta[curr_group_index] = action_0
         self.Pw[curr_group_index] = np.clip(action_1, self.P_min, self.P_max)
 
-        reward = computeChABFGain(self.groups[curr_group_index], computeBfVector(action[0]))
+        reward = computeChABFGain(self.groups[curr_group_index], computeBfVector(action_0))
         reward = ((reward / self.abf_discount) - 0.5) * 2
 
         done = False
@@ -109,25 +111,27 @@ class MIMONOMAEnv:
         self.state = state
         self.group_index = self.group_index + 1
 
-        # print(self.order, ": ", "reward:", reward, "done:", done)
-        # self.order += 1
+        print(self.order, ": ", "reward:", reward, "done:", done)
+        self.order += 1
 
         return state, reward, done, None
 
-    def actionNormal(self, action_0):
+    def actionNormal(self, action_0, action_index):
         """
         avoid the same action_0
         """
         nSame = 0
+        curra = action_index
+        currb = action_index
         while True:
             for i in self.theta:
                 if action_0 == self.theta[i]:
-                    action_0_1 = action_0 + action_0 * self.action_change * np.random.random() \
-                        if action_0 != 0 else action_0 + (action_0 + 1) * self.action_change * np.random.random()
-                    if action_0_1 <= 2 * np.pi:
-                        action_0 = action_0_1
+                    if curra + 1 < self.N_bs / 2:
+                        action_0 = self.bf_book[curra + 1]
+                        curra += 1
                     else:
-                        action_0 = action_0 - action_0 * self.action_change * np.random.random()
+                        action_0 = self.bf_book[currb - 1]
+                        currb -= 1
                 else:
                     nSame += 1
             if nSame == len(self.theta):

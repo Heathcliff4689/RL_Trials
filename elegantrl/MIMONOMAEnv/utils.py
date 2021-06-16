@@ -19,7 +19,7 @@ def computeBfVector(theta, f_c=args_channel.F_wave, N_bs=args_channel.N_bs):
     :return: BF vector, the norm square is 1.
     """
 
-    assert 0 <= theta < 2 * np.pi or - np.pi / 2 <= theta <= np.pi / 2
+    assert any((0 <= theta <= (2 * np.pi + 0.01), - np.pi / 2 <= theta <= np.pi / 2))
 
     c = 3e8
     wavelength = c / f_c
@@ -101,7 +101,7 @@ def transformState(groups_dict, N_bs=args_channel.N_bs):
     :param N_bs:
     :return: channel_norm (channel, user_number, N_bs)
             channel: 0 is channel amplitude.
-                    1 is channel angle.
+                    1 is channel phase.
                     2 is channel group flag.
     """
     user_number = 0
@@ -296,15 +296,28 @@ def getGroupGainTest(g, theta):
         group_gains.append(gains)
     return np.asarray(group_gains)
 
+def getErrRank(F_):
+    a = len(F_)
+    b = LA.matrix_rank(F_)
+    if a != b:
+        return False
+    return True
 
 if __name__ == '__main__':
-    gg = []
-    for i in range(200):
-        g = userGrouping(7, 12)
-        theta = np.linspace(0, 6.28, 64)
-        group_gains = getGroupGainTest(g, theta)
-        gg.append(sum(np.max(group_gains[k]) for k in range(len(group_gains))))
-    print(np.average(gg))
+    bf = np.asarray([2 * np.pi / 128 * i for i in range(128)])
+    F_ = [computeBfVector(i) for i in bf]
+    l = []
+    for i in range(int(len(F_))):
+        flag = getErrRank(F_[0:i+1])
+        l.append(flag)
+
+    # gg = []
+    # for i in range(200):
+    #     g = userGrouping(7, 12)
+    #     theta = np.linspace(0, 6.28, 64)
+    #     group_gains = getGroupGainTest(g, theta)
+    #     gg.append(sum(np.max(group_gains[k]) for k in range(len(group_gains))))
+    # print(np.average(gg))
 
     # for k in range(len(group_gains)):
     #     print("{}: ".format(k), np.max(group_gains[k]), )
@@ -313,3 +326,5 @@ if __name__ == '__main__':
     # t = np.array([[13, 2, 5], [4, 6, 8], [1, 2, 5], [5, 6, 8]])
     # while latter is not None:
     #     latter = latterPartState(latter)
+
+    pass
