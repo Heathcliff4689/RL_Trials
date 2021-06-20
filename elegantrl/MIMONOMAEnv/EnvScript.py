@@ -27,10 +27,11 @@ class MIMONOMAEnv:
         self.user_number = None
         self.N_bs = N_bs
         self.action_change = 0.3
+        self.differ = 0.1
         self.abf_discount = abf_discount[self.desired_user_number]
 
         self.state_dim = (6, self.desired_user_number, self.N_bs)
-        self.action_dim = 2
+        self.action_dim = 3
 
         self.state = None
         self.groups = None
@@ -41,7 +42,9 @@ class MIMONOMAEnv:
 
         self.P_min = P_min
         self.P_max = P_max
-        # self.order = 0
+
+        # 调试输出
+        self.order = 0
 
     def _updateGroups(self):
         self.user_number = int(np.random.random() * self.desired_user_number)
@@ -79,13 +82,16 @@ class MIMONOMAEnv:
         state = np.vstack((next_state_part1, next_state_part2))
         curr_group_index = self.group_index
 
-        # np.clip(action[0], 0, 2 * np.pi)
-        action_0 = (action[0] + 1) / 2 * 2 * np.pi
-        action_0 = self.actionNormal(action_0)
-        action_1 = (action[1] + 1) / 2 * self.P_max
+        # 转换2个浮点数为theta
+        action_x = action[0]
+        action_y = action[1]
+        action_theta = np.arctan(action_y / action_x) * 2 + np.pi
 
-        self.theta[curr_group_index] = action_0
-        self.Pw[curr_group_index] = np.clip(action_1, self.P_min, self.P_max)
+        action_theta = self.actionNormal(action_theta)
+        action_power = (action[2] + 1) / 2 * self.P_max
+
+        self.theta[curr_group_index] = action_theta
+        self.Pw[curr_group_index] = np.clip(action_power, self.P_min, self.P_max)
 
         reward = computeChABFGain(self.groups[curr_group_index], computeBfVector(action[0]))
         reward = ((reward / self.abf_discount) - 0.5) * 2
@@ -102,15 +108,17 @@ class MIMONOMAEnv:
                 for j in range(len(self.groups[i])):
                     final_reward = final_reward + computeSINR(i, j, F_rf=F_rf, Pw=self.Pw, groups_dict=self.groups)
             final_reward = np.clip(((final_reward / self.abf_discount) - 0.5) * 2 * 5, - 5.0, 5.0)
-            # print("reward: ", reward, "final_reward", final_reward)
             reward = reward + final_reward
+
+            print("***** next line is finishing the episode, and the final_reward is ", final_reward, "*****")
 
         # update env state
         self.state = state
         self.group_index = self.group_index + 1
 
-        # print(self.order, ": ", "reward:", reward, "done:", done)
-        # self.order += 1
+        # 调试输出
+        print(self.order, ": ", "reward:", reward, "done:", done)
+        self.order += 1
 
         return state, reward, done, None
 
@@ -121,7 +129,7 @@ class MIMONOMAEnv:
         nSame = 0
         while True:
             for i in self.theta:
-                if action_0 == self.theta[i]:
+                if abs(action_0 - self.theta[i]) < self.differ:
                     action_0_1 = action_0 + action_0 * self.action_change * np.random.random() \
                         if action_0 != 0 else action_0 + (action_0 + 1) * self.action_change * np.random.random()
                     if action_0_1 <= 2 * np.pi:
@@ -136,6 +144,7 @@ class MIMONOMAEnv:
                 nSame = 0
         return action_0
 
+    # 已弃用
     def _currActGroupsIndex(self):
         index = 0
         while LA.norm(self.state[0][index]) == 0.0 and LA.norm(self.state[3][index]) == 0.0:
@@ -152,6 +161,6 @@ if __name__ == '__main__':
         if done:
             env.reset()
         env.state, reward, done, ___ = \
-            env.step(((np.random.random() - 0.5) * 2, (np.random.random() - 0.5) * 2))
+            env.step(((np.random.random() - 0.5) * 2, (np.random.random() - 0.5) * 2, (np.random.random() - 0.5) * 2))
         time.sleep(0.2)
 
