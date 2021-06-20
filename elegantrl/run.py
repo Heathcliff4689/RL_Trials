@@ -36,7 +36,7 @@ class Arguments:
         self.target_step = 2 ** 10  # collect target_step, then update network
         self.max_memo = 2 ** 17  # capacity of replay buffer
         if if_on_policy:  # (on-policy)
-            self.net_dim = 2 ** 9
+            self.net_dim = 2 ** 8
             self.batch_size = 2 ** 10
             self.repeat_times = 2 ** 2
             self.target_step = 2 ** 12
@@ -179,9 +179,9 @@ def demo2_continuous_action_space_on_policy():
     "TotalStep: 8e5, TargetReward: 300, UsedTime: 1800s"
 
     '''train and evaluate'''
-    train_and_evaluate(args)
-    # args.rollout_num = 4
-    # train_and_evaluate_mp(args)
+    # train_and_evaluate(args)
+    args.rollout_num = 4
+    train_and_evaluate_mp(args)
 
 
 def demo3_custom_env_fin_rl():
