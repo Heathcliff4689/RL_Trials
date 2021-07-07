@@ -1,0 +1,41 @@
+python3.7 numpy1.19 torch1.81
+
+Unrecord
+更改ActorPPO、CriticAdv的网络输入结构;
+更改PreprocessEnv()函数;
+
+2021年5月15日 11:22:01
+ActorPPO 网络输出已使用tanh归一化处理；
+EnvScript step()已完成对action的截断、去重；
+run.py 增加一行draw_plot();
+multiprocessing works;
+加深ActorPPO、CriticAdv网络结构，平滑调整宽度
+using GAE, changing batchsize, repeat_times, smoothL1loss->MES
+
+2021年5月16日 11:11:53
+增加网络加载，动作分布、回合奖励绘图resCheck模块
+
+todo
+调整env参数
+
+2021年5月17日 10:37:27
+P_tol, P_max单位改为mmWatts # 奖励波动过大
+增加abf_discount, 归一化每一步的奖励[-1, 1]
+归一化(max设置待确认)最终奖励[-1, 1] * 5，加clip[-5, 5]
+sigma = 0.1
+use_number = 16
+
+# 以上代码已保存副本v0
+
+2021年5月17日 15:58:00
+修改action_0: N_bs bf_book中选一个bf_vector, 如何去重->+1 # 效果不好
+
+todo
+相位角theta改由单位圆上的两个浮点数确定
+
+2021年6月20日 10:49:22
+已完成由2个浮点数确定theta # 效果也不好
+
+todo
+接下来该做什么呢？
+先写出OMA的算法吧
