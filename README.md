@@ -1,4 +1,4 @@
-WARNNING: this code is dependent on the open source lib of RL ( https://github.com/AI4Finance-LLC/ElegantRL ).
+STATEMENT: this code is dependent on the open source lib of RL ( https://github.com/AI4Finance-LLC/ElegantRL ).
 
 the denpendent RL lib version is updated in branches.
 
